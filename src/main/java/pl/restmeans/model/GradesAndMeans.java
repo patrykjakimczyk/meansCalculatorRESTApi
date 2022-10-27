@@ -16,5 +16,6 @@ public final class GradesAndMeans {
     public GradesAndMeans(Map<Integer, List<Grade>> grades) {
         this.grades = grades;
         this.meansOfSemesters = null;
+        this.meansOfYears = null;
     }
 }

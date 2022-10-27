@@ -1,5 +1,6 @@
 package pl.restmeans.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import pl.restmeans.model.Grade;
 import pl.restmeans.model.MeanOfSemester;
 import pl.restmeans.model.MeanOfYear;
@@ -7,9 +8,11 @@ import pl.restmeans.model.MeanOfYear;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class Calculator {
 
     private Calculator() {}
@@ -20,6 +23,7 @@ public class Calculator {
                 .mapToDouble(Double::valueOf)
                 .sum());
     }
+
     private static int sumOfEcts(List<Grade> grades) {
         return grades
                 .stream()
@@ -30,6 +34,7 @@ public class Calculator {
 
     private static BigDecimal meanOfGrades(List<Grade> grades){
         BigDecimal mean;
+        int ects;
         int sum = sumOfEcts(grades);
 
         if (sum != 30) {
@@ -37,14 +42,26 @@ public class Calculator {
         }
 
         mean = sumOfGrades(grades);
+        ects = sumOfEcts(grades);
 
-        return mean.divide(BigDecimal.valueOf(30), MathContext.DECIMAL32);
+        try {
+            return mean.divide(BigDecimal.valueOf(ects), MathContext.DECIMAL32);
+        } catch(ArithmeticException e) {
+            log.error("Cannot divide by zero");
+            throw new ArithmeticException("Cannot divide by zero");
+        }
     }
 
     public static List<MeanOfSemester> calculateMeansOfSemesters(Map<Integer, List<Grade>> grades) {
         List<MeanOfSemester> means = new ArrayList<>();
+        BigDecimal mean;
         for (Map.Entry<Integer, List<Grade>> semester : grades.entrySet()) {
-            BigDecimal mean = meanOfGrades(semester.getValue());
+            try {
+                mean = meanOfGrades(semester.getValue());
+            } catch (ArithmeticException e) {
+                return Collections.emptyList();
+            }
+
             MeanOfSemester meanOfSemester = new MeanOfSemester(semester.getKey(), mean);
             means.add(meanOfSemester);
         }

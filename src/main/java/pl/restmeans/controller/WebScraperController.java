@@ -1,42 +1,46 @@
 package pl.restmeans.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pl.restmeans.exceptions.WebScrapingException;
 import pl.restmeans.model.GradesAndMeans;
 import pl.restmeans.model.MeanOfSemester;
 import pl.restmeans.model.MeanOfYear;
-import pl.restmeans.utils.WebScraper;
+import pl.restmeans.service.WebScraperService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping(path="myMean")
+@RequiredArgsConstructor
 public class WebScraperController {
 
-    @GetMapping("/allMeans")
+    private final WebScraperService webScraperService;
+
+    @PostMapping("/allMeans")
     public GradesAndMeans getAllMeans(
             @RequestParam String login,
-            @RequestParam String password) {
+            @RequestParam String password) throws WebScrapingException {
 
-        return WebScraper.getGradesAndMeans(login, password);
+        return webScraperService.getAllMeans(login, password);
     }
 
-    @GetMapping("/semesterMeans")
+    @PostMapping("/semesterMeans")
     public List<MeanOfSemester> getSemesterMeans(
             @RequestParam String login,
-            @RequestParam String password) {
+            @RequestParam String password) throws WebScrapingException {
 
-        return WebScraper.getGradesAndMeans(login, password).getMeansOfSemesters();
+        return webScraperService.getListOfSemestersMeans(login, password);
     }
 
-    @GetMapping("/yearlyMeans")
-    public List<MeanOfYear> getallYearsMeans(
+    @PostMapping("/yearlyMeans")
+    public List<MeanOfYear> getAllYearsMeans(
             @RequestParam String login,
-            @RequestParam String password) {
+            @RequestParam String password) throws WebScrapingException {
 
-        return WebScraper.getGradesAndMeans(login, password).getMeansOfYears();
+        return webScraperService.getAllYearsMeans(login, password);
     }
-
 }
