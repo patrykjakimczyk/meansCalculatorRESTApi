@@ -1,25 +1,33 @@
 package pl.restmeans.utils;
 
+import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.springframework.stereotype.Component;
 import pl.restmeans.exceptions.WebScrapingException;
+import pl.restmeans.messages.Messages;
 import pl.restmeans.model.Grade;
 import pl.restmeans.model.GradesAndMeans;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+@RequiredArgsConstructor
+@Component
 public class WebScraper {
 
-    private WebScraper() {}
+    private final Messages messages;
 
-    public static GradesAndMeans getGradesAndMeans(String login, String password) throws WebScrapingException {
+    public GradesAndMeans getGradesAndMeans(String login, String password) throws WebScrapingException {
         WebDriver webDriver = getWebDriver(login, password);
 
         return readGrades(webDriver);
     }
 
-    public static GradesAndMeans readGrades(WebDriver webDriver) {
+    public GradesAndMeans readGrades(WebDriver webDriver) {
         String semester = webDriver.findElement(By.cssSelector(".lblSemestrRok")).getText();
         int semesterInt = Integer.parseInt(String.valueOf(semester.charAt(9)));
         Map<Integer, List<Grade>> myGrades = new HashMap<>();
@@ -74,23 +82,20 @@ public class WebScraper {
         return gradesAndMeans;
     }
 
-    private static WebDriver getWebDriver(String login, String password) throws WebScrapingException {
+    private WebDriver getWebDriver(String login, String password) throws WebScrapingException {
         WebDriver webDriver = new HtmlUnitDriver();
-        webDriver.get("https://edziekanat.zut.edu.pl/WU/");
+        webDriver.get(messages.getMessage("scraper.address"));
         webDriver.findElement(By.name("ctl00$ctl00$ContentPlaceHolder$MiddleContentPlaceHolder$txtIdent"))
                 .sendKeys(login);
         webDriver.findElement(By.name("ctl00$ctl00$ContentPlaceHolder$MiddleContentPlaceHolder$txtHaslo"))
                 .sendKeys(password);
         webDriver.findElement(By.name("ctl00$ctl00$ContentPlaceHolder$MiddleContentPlaceHolder$butLoguj")).click();
 
-
-
         try {
             webDriver.findElement(By.cssSelector(".rmRootGroup.rmHorizontal"))
-                    .findElement(By.xpath("//li[2]/a"));
+                    .findElement(By.xpath("//li[2]/a")).click();
         } catch (RuntimeException e) {
-            throw new WebScrapingException(
-                    "Credentials are incorrect or problem with connection/university's page occured!");
+            throw new WebScrapingException(messages.getMessage("webscraping.exception"));
         }
 
         return webDriver;
